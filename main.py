@@ -12,6 +12,10 @@ app.permanent_session_lifetime = 86400 # 1 day
 async def before_serving():
     print('osu!stream backend is starting...')
 
+# register blueprints
+from blueprints.admin import admin
+app.register_blueprint(admin, url_prefix='/admin')
+
 if __name__ == '__main__':
     app.run(
         debug=settings.QUART_DEBUG,
