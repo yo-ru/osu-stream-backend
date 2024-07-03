@@ -1,9 +1,11 @@
 import time
+import random
 import urllib.parse as urlparse
 
 from quart import Blueprint, request
 
 from objects.score import Score, Difficulty, Rank
+from objects.player import Player
 
 score = Blueprint('score', __name__)
 
@@ -27,42 +29,40 @@ async def score_leaderboard_retrieve_post():
     # TODO: check if the beatmap exists in the database (filename, difficulty)
     # return 'message: There are no rankings for this beatmap', 200
     
-    # return a list of scores (score\nscore\nscore\n...)
-    # score: id|leadboard_position|username|hit_score|combo_bonus_score|spinner_bonus_score|count_300|count_100|count_50|count_miss|max_combo|date|guest
-    # 1|1|Yoru|200000|200000|200000|1|0|0|0|1|1719974569|0 (SS; example)
-    return '1|1|Yoru|200000|200000|200000|1|0|0|0|1|1719974569|0\n1|1|peppy|200000|200000|200000|1|0|0|0|1|1719974569|0', 200
+    # TODO: return a scores from the database
+    
+    # generate random scores using score object for testing purposes
+    random_scores = []
+    for i in range(50):
+        score = Score()
+        score.rankOnline = i + 1
+        score.player = Player()
+        score.player.username = f"User{i+1}"
+        score.count100 = random.randint(0, 100)
+        score.count300 = random.randint(0, 100)
+        score.count50 = random.randint(0, 100)
+        score.countMiss = random.randint(0, 100)
+        score.maxCombo = random.randint(0, 100)
+        score.spinnerBonusScore = random.randint(0, 100000)
+        score.comboBonusScore = random.randint(0, 100000)
+        score.hitScore = random.randint(0, 100000)
+        score.date = int(time.time())
+        
+        random_scores.append(score)
+        
+    # sort random_scores and update rankOnline
+    random_scores.sort(key=lambda x: x.totalScore, reverse=True)
+    for i, score in enumerate(random_scores):
+        score.rankOnline = i + 1
+    scores_sent = '\n'.join([score.to_leaderboard() for score in random_scores])
+    return scores_sent, 200
 
 # osu!stream score submit
 @score.route('/submit.php', methods=['POST'])
 async def score_submit_post():
     data = (await request.get_data()).decode('utf-8')
     
-    # args
-    device_id = data.split('&')[0].split('=')[1] # unique device id
-    device_type = int(data.split('&')[1].split('=')[1]) # device type (usually 0 if not iOS device.)
-    username = data.split('&')[2].split('=')[1] # username
-    user_hash = data.split('&')[3].split('=')[1] # twitter user hash
-    twitter_id = data.split('&')[4].split('=')[1] # twitter id
-    
-    count_300 = int(data.split('&')[5].split('=')[1]) # hit 300s
-    count_100 = int(data.split('&')[6].split('=')[1]) # hit 100s
-    count_50 = int(data.split('&')[7].split('=')[1]) # hit 50s
-    count_miss = int(data.split('&')[8].split('=')[1]) # hit misses
-    max_combo = int(data.split('&')[9].split('=')[1]) # max combo
-    spinner_bonus = int(data.split('&')[10].split('=')[1]) # spinner bonus
-    combo_bonus = int(data.split('&')[11].split('=')[1]) # combo bonus
-    accuracy_bonus = int(data.split('&')[12].split('=')[1]) # accuracy bonus
-    hit_score = int(data.split('&')[13].split('=')[1]) # hit score
-    rank = Rank(int(data.split('&')[14].split('=')[1])) # rank
-    difficulty = Difficulty(int(data.split('&')[15].split('=')[1])) # difficulty
-    hit_offset = float(data.split('&')[16].split('=')[1]) # average hit offset (i have no clue how i can calculate this from the score data provided by the game; likely a placeholder for future implementations.)
-    
-    filename = urlparse.unquote(data.split('&')[17].split('=')[1]) # beatmap filename
-    score_hash = data.split('&')[18].split('=')[1] # score hash
-    
-    # check for required args
-    if not device_id or not count_300 or not count_100 or not count_50 or not count_miss or not max_combo or not spinner_bonus or not combo_bonus or not accuracy_bonus or not hit_score or not rank or not filename or not user_hash or not score_hash or not difficulty or not username or not twitter_id or not device_type or not hit_offset:
-        return 'fail: missing required arguments', 400
+    player = Player.from_submission(data)
     
     # TODO: check if user exists in the database and validate user hash
     
@@ -71,27 +71,13 @@ async def score_submit_post():
     # TODO: check if beatmap exists in the database
     
     # score
-    score = Score(
-        username=username,
-        count300=count_300,
-        count100=count_100,
-        count50=count_50,
-        countMiss=count_miss,
-        maxCombo=max_combo,
-        spinnerBonusScore=spinner_bonus,
-        comboBonusScore=combo_bonus,
-        hitScore=hit_score)
-    score.ranking = rank
-    score.date = int(time.time())
+    score = Score.from_submission(data)
     
     # validate score hash
     if not score.validate_score_hash(
-        device_id=device_id,
-        device_type=device_type,
-        filename=filename,
-        difficulty=difficulty,
-        
-        score_hash=score_hash
+        device_id=player.deviceId,
+        device_type=player.deviceType,
+        score_hash=score.scoreHash
     ):
         return 'fail: invalid score hash', 403
     
