@@ -16,6 +16,9 @@ async def before_serving():
 from blueprints.admin import admin
 app.register_blueprint(admin, url_prefix='/admin')
 
+from blueprints.score import score
+app.register_blueprint(score, url_prefix='/score')
+
 if __name__ == '__main__':
     app.run(
         debug=settings.QUART_DEBUG,
