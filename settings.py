@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from environs import Env
 
 env = Env()

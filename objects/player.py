@@ -1,6 +1,3 @@
-from __future__ import annotations
-
-
 class Player:
     def __init__(self) -> None:
         self._id: int = 0

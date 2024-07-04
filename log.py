@@ -1,16 +1,12 @@
 # https://github.com/cmyui/cmyui_pkg/blob/db0062907832ec0f0896d7422c54f7628b392aa7/cmyui/logging.py
-from __future__ import annotations
+
 
 import colorsys
 import sys
-from datetime import datetime
-from datetime import tzinfo
+from datetime import datetime, tzinfo
 from enum import IntEnum
-from functools import cache
-from functools import lru_cache
-from typing import Optional
-from typing import overload
-from typing import Union
+from functools import cache, lru_cache
+from typing import Optional, Union, overload
 
 __all__ = (
     "Ansi",
@@ -54,12 +50,10 @@ class Ansi(IntEnum):
 
 class RGB:
     @overload
-    def __init__(self, rgb: int) -> None:
-        ...
+    def __init__(self, rgb: int) -> None: ...
 
     @overload
-    def __init__(self, r: int, g: int, b: int) -> None:
-        ...
+    def __init__(self, r: int, g: int, b: int) -> None: ...
 
     def __init__(self, *args) -> None:
         largs = len(args)
@@ -81,8 +75,7 @@ class RGB:
         return f"\x1b[38;2;{self.r};{self.g};{self.b}m"
 
 
-class _Rainbow:
-    ...
+class _Rainbow: ...
 
 
 Rainbow = _Rainbow()

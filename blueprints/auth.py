@@ -1,7 +1,4 @@
-from __future__ import annotations
-
-from quart import Blueprint
-from quart import request
+from quart import Blueprint, request
 
 auth = Blueprint("auth", __name__)
 

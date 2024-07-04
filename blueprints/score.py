@@ -1,16 +1,11 @@
-from __future__ import annotations
-
 import random
 import time
 import urllib.parse as urlparse
 
-from quart import Blueprint
-from quart import request
+from quart import Blueprint, request
 
 from objects.player import Player
-from objects.score import Difficulty
-from objects.score import Rank
-from objects.score import Score
+from objects.score import Difficulty, Rank, Score
 
 score = Blueprint("score", __name__)
 

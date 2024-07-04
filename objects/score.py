@@ -1,11 +1,7 @@
-from __future__ import annotations
-
 import hashlib
 import time
 import urllib.parse as urlparse
-from enum import Enum
-from enum import IntEnum
-from enum import unique
+from enum import Enum, IntEnum, unique
 
 from objects.player import Player
 

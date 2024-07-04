@@ -1,13 +1,10 @@
-from __future__ import annotations
-
 import os
 
 import databases
 from quart import Quart
 
 import settings
-from log import Ansi
-from log import log
+from log import Ansi, log
 
 app = Quart(__name__)
 app.secret_key = os.urandom(32)
