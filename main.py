@@ -19,6 +19,9 @@ app.register_blueprint(admin, url_prefix='/admin')
 from blueprints.score import score
 app.register_blueprint(score, url_prefix='/score')
 
+from blueprints.auth import auth
+app.register_blueprint(auth, url_prefix='/auth')
+
 if __name__ == '__main__':
     app.run(
         debug=settings.QUART_DEBUG,
