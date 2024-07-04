@@ -3,7 +3,7 @@ from quart import Blueprint, request
 admin = Blueprint('admin', __name__)
 
 # osu!stream crash reporting
-@admin.route('/crash.php', methods=['POST'])
+@admin.route('/crash', methods=['POST'])
 async def admin_crash_report_post():
     data = (await request.get_data()).decode('utf-8')
     
@@ -24,7 +24,3 @@ async def admin_crash_report_post():
         f.write(exception)
     
     return 'success: ok', 200
-
-@admin.route('/crash.php', methods=['GET'])
-async def admin_crash_report_get():
-    pass
