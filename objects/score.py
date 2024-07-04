@@ -234,21 +234,21 @@ class Score:
     
     @classmethod
     def from_submission(cls, data: str) -> 'Score':
-        count_300 = int(data.split('&')[5].split('=')[1])
-        count_100 = int(data.split('&')[6].split('=')[1])
-        count_50 = int(data.split('&')[7].split('=')[1])
-        count_miss = int(data.split('&')[8].split('=')[1])
-        max_combo = int(data.split('&')[9].split('=')[1])
-        spinner_bonus_score = int(data.split('&')[10].split('=')[1])
-        combo_bonus_score = int(data.split('&')[11].split('=')[1])
-        accuracy_bonus_score = int(data.split('&')[12].split('=')[1])
-        hit_score = int(data.split('&')[13].split('=')[1])
-        rank = Rank(int(data.split('&')[14].split('=')[1]))
-        difficulty = Difficulty(int(data.split('&')[15].split('=')[1]))
-        hit_offset = float(data.split('&')[16].split('=')[1])
+        count_300 = int(data.split('&')[1].split('=')[1])
+        count_100 = int(data.split('&')[2].split('=')[1])
+        count_50 = int(data.split('&')[3].split('=')[1])
+        count_miss = int(data.split('&')[4].split('=')[1])
+        max_combo = int(data.split('&')[5].split('=')[1])
+        spinner_bonus_score = int(data.split('&')[6].split('=')[1])
+        combo_bonus_score = int(data.split('&')[7].split('=')[1])
+        accuracy_bonus_score = int(data.split('&')[8].split('=')[1])
+        hit_score = int(data.split('&')[9].split('=')[1])
+        rank = Rank[data.split('&')[10].split('=')[1]]
+        filename = urlparse.unquote(data.split('&')[11].split('=')[1]).replace('+', ' ') # ah yes peppy, encode spaces as + instead of %20
+        score_hash = data.split('&')[13].split('=')[1]
+        difficulty = Difficulty(int(data.split('&')[14].split('=')[1]))
+        hit_offset = float(data.split('&')[17].split('=')[1])
         
-        filename = urlparse.unquote(data.split('&')[17].split('=')[1])
-        score_hash = data.split('&')[18].split('=')[1]
         
         s = cls()
         s.count100 = count_100

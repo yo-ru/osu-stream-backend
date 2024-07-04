@@ -49,16 +49,15 @@ class Player:
     @classmethod
     def from_submission(cls, data: str) -> 'Player':
         device_id = data.split('&')[0].split('=')[1]
-        device_type = int(data.split('&')[1].split('=')[1])
-        username = data.split('&')[2].split('=')[1]
-        player_hash = data.split('&')[3].split('=')[1]
-        twitter_id = data.split('&')[4].split('=')[1] # unused
+        player_hash = data.split('&')[12].split('=')[1]
+        username = data.split('&')[15].split('=')[1]
+        device_type = int(data.split('&')[16].split('=')[1])
         
         p = cls()
         p.deviceId = device_id
-        p.deviceType = device_type
-        p.username = username
         p.hash = player_hash
+        p.username = username
+        p.deviceType = device_type
         
         return p
         
