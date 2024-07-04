@@ -10,19 +10,15 @@ from objects.player import Player
 score = Blueprint('score', __name__)
 
 # osu!stream score leadboard retrieve
-@score.route('/retrieve.php', methods=['POST'])
+@score.route('/retrieve', methods=['POST'])
 async def score_leaderboard_retrieve_post():
     data = (await request.get_data()).decode('utf-8')
     
-    # args (osu!stream sends URL args as POST data???)
+    # args (peppy why...)
     device_id = data.split('&')[0].split('=')[1] # i think this is used as some sort of auth identifier for making the request
     filename = urlparse.unquote(data.split('&')[1].split('=')[1]) # spaces are denoted as + in the filename
     period = data.split('&')[2].split('=')[1] # always 0? (probably for future leaderboard implementations)
     difficulty = Difficulty(int(data.split('&')[3].split('=')[1])) # difficulty (-1: None, 0: Easy, 1: Normal, 2: Hard, 3: Expert)
-    
-    # check for required args
-    if not device_id or not filename or not period or not difficulty:
-        return 'fail: missing required arguments', 400
     
     # TODO: do some sort of check on unique_device_id
     
@@ -58,7 +54,7 @@ async def score_leaderboard_retrieve_post():
     return scores_sent, 200
 
 # osu!stream score submit
-@score.route('/submit.php', methods=['POST'])
+@score.route('/submit', methods=['POST'])
 async def score_submit_post():
     data = (await request.get_data()).decode('utf-8')
     
@@ -79,12 +75,12 @@ async def score_submit_post():
         device_type=player.deviceType,
         score_hash=score.scoreHash
     ):
-        return 'fail: invalid score hash', 403
+        return 'fail: invalid score hash', 200
     
-    # TODO: save score to the database
+    # TODO: save score to the database if it is a new high score
     
     # TODO: score submission successful; new high score
     # return 'message: You set a new high score!', 200
     
-    # score submission successful; no new high score
+    # TODO: score submission successful; no new high score
     return '', 200
