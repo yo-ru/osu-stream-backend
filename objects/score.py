@@ -227,7 +227,7 @@ class Score:
         return f'{self.id}|{self.rankOnline}|{self.player.username}|{self.hitScore}|{self.comboBonusScore}|{self.spinnerBonusScore}|{self.count300}|{self.count100}|{self.count50}|{self.countMiss}|{self.maxCombo}|{self.date}|{int(self.guest)}'
     
     def score_hash(self, device_id: str, device_type: int) -> str:
-        return hashlib.md5(f'moocow{device_id}{self.count100}{self.count300}{self.count50}{self.countMiss}{self.maxCombo}{self.spinnerBonusScore}{self.comboBonusScore}{self.accuracyBonusScore}{self.rank}{self.filename}{device_type}{self.hitScore}{self.difficulty}'.encode()).hexdigest()
+        return hashlib.md5(f'moocow{device_id}{self.count100}{self.count300}{self.count50}{self.countMiss}{self.maxCombo}{self.spinnerBonusScore}{self.comboBonusScore}{self.accuracyBonusScore}{self.rank.name}{self.filename}{device_type}{self.hitScore}{self.difficulty}'.encode()).hexdigest()
     
     def validate_score_hash(self, device_id: str, device_type: int, score_hash: str) -> bool:
         return score_hash == self.score_hash(device_id, device_type, self.filename, self.difficulty)
