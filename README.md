@@ -1,5 +1,5 @@
 # osu!stream backend
-A recreation of the osu!stream backend used in my fork of [ppy/osu-stream](https://github.com/yo-ru/osu-stream).
+A recreation of the osu!stream backend used in [my fork](https://github.com/yo-ru/osu-stream) of [ppy/osu-stream](https://github.com/ppy/osu-stream).
 
 ## About
 osu!stream backend is a, modern, pythonic, implementation of osu!stream's backend. This is not designed as a drop-in replacement, it is specifically designed for use in my fork.
