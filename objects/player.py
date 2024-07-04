@@ -47,7 +47,7 @@ class Player:
         self._deviceType = value
 
     @classmethod
-    def from_submission(cls, data: str) -> Player:
+    def from_submission(cls, data: str) -> "Player":
         device_id = data.split("&")[0].split("=")[1]
         player_hash = data.split("&")[12].split("=")[1]
         username = data.split("&")[15].split("=")[1]

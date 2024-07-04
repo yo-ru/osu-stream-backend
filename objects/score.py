@@ -252,7 +252,7 @@ class Score:
         return score_hash == self.score_hash(device_id, device_type)
 
     @classmethod
-    def from_submission(cls, data: str) -> Score:
+    def from_submission(cls, data: str) -> "Score":
         count_300 = int(data.split("&")[1].split("=")[1])
         count_100 = int(data.split("&")[2].split("=")[1])
         count_50 = int(data.split("&")[3].split("=")[1])
