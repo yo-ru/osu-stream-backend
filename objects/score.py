@@ -2,12 +2,12 @@ import time
 import hashlib
 import urllib.parse as urlparse
 
-from enum import IntEnum, unique
+from enum import IntEnum, Enum, unique
 
 from objects.player import Player
 
 @unique
-class Rank(IntEnum):
+class Rank(Enum):
     N = 0
     D = 1
     C = 2
