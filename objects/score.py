@@ -230,7 +230,7 @@ class Score:
         return hashlib.md5(f'moocow{device_id}{self.count100}{self.count300}{self.count50}{self.countMiss}{self.maxCombo}{self.spinnerBonusScore}{self.comboBonusScore}{self.accuracyBonusScore}{self.rank.name}{self.filename}{device_type}{self.hitScore}{self.difficulty}'.encode()).hexdigest()
     
     def validate_score_hash(self, device_id: str, device_type: int, score_hash: str) -> bool:
-        return score_hash == self.score_hash(device_id, device_type, self.filename, self.difficulty)
+        return score_hash == self.score_hash(device_id, device_type)
     
     @classmethod
     def from_submission(cls, data: str) -> 'Score':
