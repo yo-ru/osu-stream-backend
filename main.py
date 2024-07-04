@@ -30,7 +30,7 @@ async def before_serving():
 
     # check if the database is accessible
     app.db = databases.Database(settings.DB_DSN)
-    log("Connecting to the database...", col=Ansi.LCYAN, end=" ")
+    log("Connecting to database...", col=Ansi.LCYAN, end=" ")
     try:
         await app.db.connect()
         await app.db.disconnect()
