@@ -13,7 +13,7 @@ async def admin_crash_report_post():
         device = data.split('&')[1].split('=')[1]
         version = data.split('&')[2].split('=')[1]
     except IndexError:
-        device, version = 'unknown'
+        device, version = 'unknown', 'unknown'
     
     if not exception:
         return 'fail: missing required arguments', 400
