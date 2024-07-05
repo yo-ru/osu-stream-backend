@@ -5,10 +5,10 @@ lint:
 	pipenv run pre-commit run --all-files
 
 install:
-	pipenv install
+	PIPENV_VENV_IN_PROJECT=1 pipenv install
 
 install-dev:
-	pipenv install --dev
+	PIPENV_VENV_IN_PROJECT=1 pipenv install --dev
 
 uninstall:
 	pipenv --rm
@@ -19,7 +19,7 @@ update:
 	pipenv requirements --dev > requirements-dev.txt
 
 run:
-	pipenv run python3.12 main.py
+	pipenv run python main.py
 
 clean:
 	pipenv clean
