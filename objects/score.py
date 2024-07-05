@@ -31,7 +31,6 @@ class Score:
         self._guest: bool = False
         self._useAccuracyBonus: bool = True
         self._rank: Rank = Rank.N
-        self._rankOnline: int = 0
         self._count100: int = 0
         self._count300: int = 0
         self._count50: int = 0
@@ -85,14 +84,6 @@ class Score:
     @rank.setter
     def rank(self, value: Rank):
         self._rank = value
-
-    @property
-    def rankOnline(self):
-        return self._rankOnline
-
-    @rankOnline.setter
-    def rankOnline(self, value: int):
-        self._rankOnline = value
 
     @property
     def count100(self):
@@ -224,8 +215,8 @@ class Score:
     def totalSuccessfulHits(self):
         return self.count50 + self.count100 + self.count300
 
-    def to_leaderboard(self, username: str) -> str:
-        return f"{self.id}|{self.rankOnline}|{username}|{self.hitScore}|{self.comboBonusScore}|{self.spinnerBonusScore}|{self.count300}|{self.count100}|{self.count50}|{self.countMiss}|{self.maxCombo}|{self.date}|{int(self.guest)}"
+    def to_leaderboard(self, username: str, rankOnline: int) -> str:
+        return f"{self.id}|{rankOnline}|{username}|{self.hitScore}|{self.comboBonusScore}|{self.spinnerBonusScore}|{self.count300}|{self.count100}|{self.count50}|{self.countMiss}|{self.maxCombo}|{self.date}|{int(self.guest)}"
 
     def score_hash(self, device_id: str, device_type: int) -> str:
         return hashlib.md5(
@@ -238,6 +229,28 @@ class Score:
         device_type: int,
     ) -> bool:
         return self.hash == self.score_hash(device_id, device_type)
+
+    @classmethod
+    def from_row(cls, row: dict) -> "Score":
+        s = cls()
+        s.id = row["id"]
+        s.date = row["_date"]
+        s.guest = row["guest"]
+        s.rank = Rank[row["_rank"]]
+        s.count100 = row["count_100"]
+        s.count300 = row["count_300"]
+        s.count50 = row["count_50"]
+        s.countMiss = row["count_miss"]
+        s.maxCombo = row["max_combo"]
+        s.spinnerBonusScore = row["spinner_bonus_score"]
+        s.comboBonusScore = row["combo_bonus_score"]
+        s.hitScore = row["hit_score"]
+        s.accuracyBonusScore = row["accuracy_bonus_score"]
+        s.difficulty = Difficulty(row["difficulty"])
+        s.hitOffset = row["hit_offset"]
+        s.filename = row["filename"]
+        s.hash = row["hash"]
+        return s
 
     @classmethod
     def from_submission(cls, data: str) -> "Score":
