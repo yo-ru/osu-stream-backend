@@ -24,6 +24,10 @@ from blueprints.auth import auth
 
 app.register_blueprint(auth, url_prefix="/auth")
 
+from blueprints.avatar import avatar
+
+app.register_blueprint(avatar, url_prefix="/avatar")
+
 
 @app.before_serving
 async def before_serving():
