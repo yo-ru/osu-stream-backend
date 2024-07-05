@@ -3,6 +3,10 @@ import databases
 
 import settings
 from constants.auth import AuthResponse
+from constants.score import SubmissionResponse
+from objects.score import Score
+
+
 class Player:
     def __init__(self) -> None:
         self._id: int = 0
@@ -127,6 +131,75 @@ class Player:
                 {"username_safe": self.username_safe},
             )
             return AuthResponse.SUCCESS  # successful logout
+
+    async def submit_score(self, score: "Score") -> AuthResponse | SubmissionResponse:
+        async with databases.Database(settings.DB_DSN) as db:
+            result = await db.fetch_one(
+                "SELECT id, hash FROM players WHERE username_safe = :username_safe",
+                {"username_safe": self.username_safe},
+            )
+
+            if not result or not await aiobcrypt.checkpw(
+                self.hash.encode("utf-8"),
+                result[1].encode("utf-8"),
+            ):
+                return AuthResponse.CREDENTIAL_MISMATCH  # password incorrect
+
+            if not score.validate_hash(
+                device_id=self.deviceId,
+                device_type=self.deviceType,
+            ):
+                return SubmissionResponse.INVALID_HASH
+
+            high_score = await db.fetch_one(
+                "SELECT hit_score FROM scores WHERE player_id = :player_id AND filename = :filename AND difficulty = :difficulty",
+                {
+                    "player_id": result[0],
+                    "filename": score.filename,
+                    "difficulty": score.difficulty,
+                },
+            )
+
+            # check if the score is a new high score
+            if high_score and high_score[0] >= score.hitScore:
+                return SubmissionResponse.SUCCESS
+
+            # delete old high score
+            await db.execute(
+                "DELETE FROM scores WHERE player_id = :player_id AND filename = :filename AND difficulty = :difficulty",
+                {
+                    "player_id": result[0],
+                    "filename": score.filename,
+                    "difficulty": score.difficulty,
+                },
+            )
+
+            # insert new high score
+            await db.execute(
+                "INSERT INTO scores (player_id, _date, guest, _rank, count_300, count_100, count_50, count_miss, max_combo, spinner_bonus_score, combo_bonus_score, accuracy_bonus_score, hit_score, difficulty, hit_offset, filename, hash) VALUES (:player_id, :_date, :guest, :_rank, :count_300, :count_100, :count_50, :count_miss, :max_combo, :spinner_bonus_score, :combo_bonus_score, :accuracy_bonus_score, :hit_score, :difficulty, :hit_offset, :filename, :hash)",
+                {
+                    "player_id": result[0],
+                    "_date": score.date,
+                    "guest": score.guest,
+                    "_rank": score.rank.name,
+                    "count_300": score.count300,
+                    "count_100": score.count100,
+                    "count_50": score.count50,
+                    "count_miss": score.countMiss,
+                    "max_combo": score.maxCombo,
+                    "spinner_bonus_score": score.spinnerBonusScore,
+                    "combo_bonus_score": score.comboBonusScore,
+                    "accuracy_bonus_score": score.accuracyBonusScore,
+                    "hit_score": score.hitScore,
+                    "difficulty": score.difficulty,
+                    "hit_offset": score.hitOffset,
+                    "filename": score.filename,
+                    "hash": score.hash,
+                },
+            )
+
+            return SubmissionResponse.SUCCESS_HIGHSCORE
+
     @classmethod
     def from_submission(cls, data: str) -> "Player":
         device_id = data.split("&")[0].split("=")[1]

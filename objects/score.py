@@ -3,8 +3,6 @@ import time
 import urllib.parse as urlparse
 from enum import Enum, IntEnum, unique
 
-from objects.player import Player
-
 
 @unique
 class Rank(Enum):
@@ -29,7 +27,6 @@ class Difficulty(IntEnum):
 class Score:
     def __init__(self) -> None:
         self._id: int = 0
-        self._player: Player = None
         self._date: int = int(time.time())
         self._guest: bool = False
         self._useAccuracyBonus: bool = True
@@ -47,7 +44,7 @@ class Score:
         self._difficulty: Difficulty = Difficulty.NONE
         self._hitOffset: float = 0.0
         self._filename: str = ""
-        self._scoreHash: str = ""
+        self._hash: str = ""
 
     @property
     def id(self):
@@ -56,14 +53,6 @@ class Score:
     @id.setter
     def id(self, value: int):
         self._id = value
-
-    @property
-    def player(self):
-        return self._player
-
-    @player.setter
-    def player(self, value: Player):
-        self._player = value
 
     @property
     def date(self):
@@ -194,12 +183,12 @@ class Score:
         self._filename = value
 
     @property
-    def scoreHash(self):
-        return self._scoreHash
+    def hash(self):
+        return self._hash
 
-    @scoreHash.setter
-    def scoreHash(self, value: str):
-        self._scoreHash = value
+    @hash.setter
+    def hash(self, value: str):
+        self._hash = value
 
     @property
     def totalScore(self):
@@ -235,21 +224,20 @@ class Score:
     def totalSuccessfulHits(self):
         return self.count50 + self.count100 + self.count300
 
-    def to_leaderboard(self) -> str:
-        return f"{self.id}|{self.rankOnline}|{self.player.username}|{self.hitScore}|{self.comboBonusScore}|{self.spinnerBonusScore}|{self.count300}|{self.count100}|{self.count50}|{self.countMiss}|{self.maxCombo}|{self.date}|{int(self.guest)}"
+    def to_leaderboard(self, username: str) -> str:
+        return f"{self.id}|{self.rankOnline}|{username}|{self.hitScore}|{self.comboBonusScore}|{self.spinnerBonusScore}|{self.count300}|{self.count100}|{self.count50}|{self.countMiss}|{self.maxCombo}|{self.date}|{int(self.guest)}"
 
     def score_hash(self, device_id: str, device_type: int) -> str:
         return hashlib.md5(
             f"moocow{device_id}{self.count100}{self.count300}{self.count50}{self.countMiss}{self.maxCombo}{self.spinnerBonusScore}{self.comboBonusScore}{self.accuracyBonusScore}{self.rank.name}{self.filename}{device_type}{self.hitScore}{self.difficulty}".encode(),
         ).hexdigest()
 
-    def validate_score_hash(
+    def validate_hash(
         self,
         device_id: str,
         device_type: int,
-        score_hash: str,
     ) -> bool:
-        return score_hash == self.score_hash(device_id, device_type)
+        return self.hash == self.score_hash(device_id, device_type)
 
     @classmethod
     def from_submission(cls, data: str) -> "Score":
@@ -285,7 +273,7 @@ class Score:
         s.difficulty = difficulty
         s.hitOffset = hit_offset
         s.filename = filename
-        s.scoreHash = score_hash
+        s.hash = score_hash
         s.date = int(time.time())
 
         return s
