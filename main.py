@@ -4,7 +4,8 @@ import databases
 from quart import Quart
 
 import settings
-from log import Ansi, log
+import utilities.database as db
+from utilities.logging import Ansi, log
 
 app = Quart(__name__)
 app.secret_key = os.urandom(32)
@@ -28,18 +29,35 @@ app.register_blueprint(auth, url_prefix="/auth")
 async def before_serving():
     log("=== osu!stream backend ===", Ansi.LMAGENTA)
 
-    # check if the database is accessible
-    app.db = databases.Database(settings.DB_DSN)
-    log("Connecting to database...", col=Ansi.LCYAN, end=" ")
-    try:
-        await app.db.connect()
-        await app.db.disconnect()
+    log("checking database connection...", col=Ansi.LCYAN, end=" ")
+    if await db.check_alive():
         log("SUCCESS", Ansi.LGREEN, timestamp=False)
-    except Exception as e:
+    else:
         log(f"FAILED", Ansi.LRED, timestamp=False)
-        log(f"Error: {Ansi.RESET!r}{e}", Ansi.LRED)
         log("==========================", Ansi.LMAGENTA)
+        await app.shutdown()
         os._exit(1)
+
+    log("checking database structure...", col=Ansi.LCYAN, end=" ")
+    if await db.check_structure():
+        log("SUCCESS", Ansi.LGREEN, timestamp=False)
+    else:
+        log(f"FAILED", Ansi.LRED, timestamp=False)
+        log("==========================", Ansi.LMAGENTA)
+        await app.shutdown()
+        os._exit(1)
+
+    log("")
+
+    log(
+        f"debug mode... {f'{Ansi.LGREEN!r}ON' if settings.QUART_DEBUG else f'{Ansi.LRED!r}OFF'}",
+        Ansi.LCYAN,
+    )
+    log(
+        f"osu!stream backend serving on... {Ansi.LGREEN!r}{settings.QUART_HOST}:{settings.QUART_PORT}",
+        Ansi.LCYAN,
+    )
+
     log("==========================", Ansi.LMAGENTA)
 
 
