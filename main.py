@@ -1,7 +1,6 @@
 import os
 
-import databases
-from quart import Quart
+from quart import Quart, request
 
 import settings
 import utilities.database as db
@@ -27,6 +26,10 @@ app.register_blueprint(auth, url_prefix="/auth")
 from blueprints.avatar import avatar
 
 app.register_blueprint(avatar, url_prefix="/avatar")
+
+from blueprints.dl import dl
+
+app.register_blueprint(dl, url_prefix="/dl")
 
 
 @app.before_serving
@@ -63,7 +66,10 @@ async def before_serving():
     )
 
     log("==========================", Ansi.LMAGENTA)
-
+    
+@app.errorhandler(404)
+async def page_not_found(e):
+    return f"404: This route does not exist {request.url}", 404
 
 if __name__ == "__main__":
     app.run(
