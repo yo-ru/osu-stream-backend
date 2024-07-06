@@ -218,11 +218,13 @@ class Player:
     @classmethod
     def from_connect(cls, args: dict) -> "Player":
         device_id = args.get("udid")
+        device_type = args.get("dt")
         username = args.get("username")
         hash = args.get("cc")
 
         p = cls()
         p.deviceId = device_id
+        p.deviceType = device_type
         p.username = username
         p.hash = hash
 
