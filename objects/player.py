@@ -78,6 +78,20 @@ class Player:
             ):
                 return AuthResponse.CREDENTIAL_MISMATCH  # password incorrect
 
+            # update the device_id and device_type if necessary
+            if (
+                result["device_id"] != self.deviceId
+                or result["device_type"] != self.deviceType
+            ):
+                await db.execute(
+                    "UPDATE players SET device_id = :device_id, device_type = :device_type WHERE username_safe = :username_safe",
+                    {
+                        "device_id": self.deviceId,
+                        "device_type": self.deviceType,
+                        "username_safe": self.username_safe,
+                    },
+                )
+
             return AuthResponse.SUCCESS  # successful login
 
     async def _register(self) -> AuthResponse:
