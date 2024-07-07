@@ -1,9 +1,9 @@
 import os
 
+import databases
 from quart import Quart, request
 
 import settings
-import utilities.database as db
 from utilities.logging import Ansi, log
 
 app = Quart(__name__)
@@ -36,19 +36,13 @@ app.register_blueprint(dl, url_prefix="/dl")
 async def before_serving():
     log("=== osu!stream backend ===", Ansi.LMAGENTA)
 
-    log("checking database connection...", col=Ansi.LCYAN, end=" ")
-    if await db.check_alive():
+    log("checking database connection...", col=Ansi.LCYAN, end="")
+    try:
+        db = databases.Database(settings.DB_DSN)
+        await db.connect()
+        await db.disconnect()
         log("SUCCESS", Ansi.LGREEN, timestamp=False)
-    else:
-        log(f"FAILED", Ansi.LRED, timestamp=False)
-        log("==========================", Ansi.LMAGENTA)
-        await app.shutdown()
-        os._exit(1)
-
-    log("checking database structure...", col=Ansi.LCYAN, end=" ")
-    if await db.check_structure():
-        log("SUCCESS", Ansi.LGREEN, timestamp=False)
-    else:
+    except Exception as e:
         log(f"FAILED", Ansi.LRED, timestamp=False)
         log("==========================", Ansi.LMAGENTA)
         await app.shutdown()
@@ -57,19 +51,16 @@ async def before_serving():
     log("")
 
     log(
-        f"debug mode... {f'{Ansi.LGREEN!r}ON' if settings.QUART_DEBUG else f'{Ansi.LRED!r}OFF'}",
+        f"debug mode...{f'{Ansi.LGREEN!r}ON' if settings.QUART_DEBUG else f'{Ansi.LRED!r}OFF'}",
         Ansi.LCYAN,
     )
     log(
-        f"osu!stream backend serving on... {Ansi.LGREEN!r}{settings.QUART_HOST}:{settings.QUART_PORT}",
+        f"osu!stream backend serving on...{Ansi.LGREEN!r}{settings.QUART_HOST}:{settings.QUART_PORT}",
         Ansi.LCYAN,
     )
 
     log("==========================", Ansi.LMAGENTA)
-    
-@app.errorhandler(404)
-async def page_not_found(e):
-    return f"404: This route does not exist {request.url}", 404
+
 
 if __name__ == "__main__":
     app.run(

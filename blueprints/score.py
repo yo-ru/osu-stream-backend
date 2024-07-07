@@ -2,9 +2,8 @@ from quart import Blueprint, request
 
 from constants.auth import AuthResponse
 from constants.score import SubmissionResponse
-from objects.leaderboard import Leaderboard
 from objects.player import Player
-from objects.score import Score
+from objects.score import Leaderboard, Score
 from utilities.logging import Ansi, log
 
 score = Blueprint("score", __name__)
@@ -14,6 +13,7 @@ score = Blueprint("score", __name__)
 @score.route("/retrieve", methods=["POST"])
 async def score_leaderboard_retrieve_post():
     data = (await request.get_data()).decode("utf-8")
+
     return await Leaderboard(data).to_stream(), 200
 
 

@@ -3,6 +3,10 @@ import time
 import urllib.parse as urlparse
 from enum import Enum, IntEnum, unique
 
+import databases
+
+import settings
+
 
 @unique
 class Rank(Enum):
@@ -20,8 +24,11 @@ class Difficulty(IntEnum):
     NONE = -1
     EASY = 0
     NORMAL = 1
-    HARD = 2
+    HARD = 2  # possibly unused
     EXPERT = 3
+
+
+ACCURACY_BONUS_AMOUNT = 400000
 
 
 class Score:
@@ -29,7 +36,6 @@ class Score:
         self._id: int = 0
         self._date: int = int(time.time())
         self._guest: bool = False
-        self._useAccuracyBonus: bool = True
         self._rank: Rank = Rank.N
         self._count100: int = 0
         self._count300: int = 0
@@ -68,14 +74,6 @@ class Score:
     @guest.setter
     def guest(self, value: bool):
         self._guest = value
-
-    @property
-    def useAccuracyBonus(self):
-        return self._useAccuracyBonus
-
-    @useAccuracyBonus.setter
-    def useAccuracyBonus(self, value: bool):
-        self._useAccuracyBonus = value
 
     @property
     def rank(self):
@@ -192,20 +190,11 @@ class Score:
 
     @property
     def accuracyBonusScore(self):
-        return int(round(max(0, self.accuracy - 0.60) / 0.4 * ACCURACY_BONUS_AMOUNT))
+        return self._accuracyBonusScore
 
     @accuracyBonusScore.setter
     def accuracyBonusScore(self, value: int):
         self._accuracyBonusScore = value
-
-    @property
-    def accuracy(self):
-        return (
-            (self.count50 * 1 + self.count100 * 2 + self.count300 * 4)
-            / (self.totalHits * 4)
-            if self.totalHits > 0
-            else 0
-        )
 
     @property
     def totalHits(self):
@@ -267,7 +256,7 @@ class Score:
         filename = urlparse.unquote(data.split("&")[11].split("=")[1]).replace(
             "+",
             " ",
-        )  # ah yes peppy, encode spaces as + instead of %20
+        )
         score_hash = data.split("&")[13].split("=")[1]
         difficulty = Difficulty(int(data.split("&")[14].split("=")[1]))
         hit_offset = float(data.split("&")[17].split("=")[1])
@@ -292,6 +281,41 @@ class Score:
         return s
 
 
-ACCURACY_BONUS_AMOUNT = 400000
-MAX_SCORE = 1000000
-HIT_PLUS_COMBO_BONUS_AMOUNT = MAX_SCORE - ACCURACY_BONUS_AMOUNT
+class Leaderboard:
+    def __init__(self, data: str) -> None:
+        _deviceId: str = data.split("&")[0].split("=")[1]
+        self._filename: str = urlparse.unquote(
+            data.split("&")[1].split("=")[1],
+        ).replace(
+            "+",
+            " ",
+        )
+        self._period: int = int(
+            data.split("&")[2].split("=")[1],
+        )
+        self._difficulty: Difficulty = Difficulty(
+            int(data.split("&")[3].split("=")[1]),
+        )
+
+    async def to_stream(self) -> str:
+        async with databases.Database(settings.DB_DSN) as db:
+            scores = await db.fetch_all(
+                "SELECT scores.*, players.username AS username FROM scores JOIN players ON scores.player_id = players.id WHERE filename = :filename AND difficulty = :difficulty LIMIT 100",
+                {"filename": self._filename, "difficulty": self._difficulty},
+            )
+
+            if not scores:
+                return ""
+
+            score_objects = [Score.from_row(score) for score in scores]
+            score_objects = sorted(
+                score_objects,
+                key=lambda score: score.totalScore,
+                reverse=True,
+            )
+
+            leaderboard = ""
+            for i, score in enumerate(score_objects):
+                leaderboard += f"{score.to_leaderboard(scores[i]["username"], i + 1)}{"\n" if i < 99 else ""}"
+
+            return leaderboard
