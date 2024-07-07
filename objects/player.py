@@ -152,16 +152,17 @@ class Player:
                 return SubmissionResponse.INVALID_HASH
 
             high_score = await db.fetch_one(
-                "SELECT hit_score FROM scores WHERE player_id = :player_id AND filename = :filename AND difficulty = :difficulty",
+                "SELECT (spinner_bonus_score + combo_bonus_score + accuracy_bonus_score + hit_score) FROM scores WHERE player_id = :player_id AND filename = :filename AND difficulty = :difficulty",
                 {
                     "player_id": result[0],
                     "filename": score.filename,
                     "difficulty": score.difficulty,
                 },
             )
+            
 
-            # check if the score is a new high score
-            if high_score and high_score[0] >= score.hitScore:
+            # no new high score
+            if high_score and high_score[0] >= score.totalScore:
                 return SubmissionResponse.SUCCESS
 
             # delete old high score
