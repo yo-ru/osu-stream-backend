@@ -14,15 +14,23 @@ score = Blueprint("score", __name__)
 async def score_leaderboard_retrieve_post():
     data = (await request.get_data()).decode("utf-8")
 
-    return await Leaderboard(data).to_stream(), 200
+    try:
+        leaderboard = Leaderboard(data)
+    except:
+        return "fail: missing required arguments", 400
+
+    return await leaderboard.to_stream(), 200
 
 
 # osu!stream score submit
 @score.route("/submit", methods=["POST"])
 async def score_submit_post():
     data = (await request.get_data()).decode("utf-8")
-    player = Player.from_submission(data)
-    score = Score.from_submission(data)
+    try:
+        player = Player.from_submission(data)
+        score = Score.from_submission(data)
+    except:
+        return "fail: missing required arguments", 400
 
     log(f"({player.username}) score submission...", Ansi.LCYAN, end=" ")
     match await player.submit_score(score):
