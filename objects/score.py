@@ -300,7 +300,7 @@ class Leaderboard:
     async def to_stream(self) -> str:
         async with databases.Database(settings.DB_DSN) as db:
             scores = await db.fetch_all(
-                "SELECT scores.*, players.username AS username FROM scores JOIN players ON scores.player_id = players.id WHERE filename = :filename AND difficulty = :difficulty LIMIT 100",
+                "SELECT scores.*, players.username AS username FROM scores JOIN players ON scores.player_id = players.id WHERE filename = :filename AND difficulty = :difficulty ORDER BY (spinner_bonus_score + combo_bonus_score + accuracy_bonus_score + hit_score) DESC LIMIT 100",
                 {"filename": self._filename, "difficulty": self._difficulty},
             )
 
@@ -308,11 +308,6 @@ class Leaderboard:
                 return ""
 
             score_objects = [Score.from_row(score) for score in scores]
-            score_objects = sorted(
-                score_objects,
-                key=lambda score: score.totalScore,
-                reverse=True,
-            )
 
             leaderboard = ""
             for i, score in enumerate(score_objects):
